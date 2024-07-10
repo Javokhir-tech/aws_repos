@@ -21,6 +21,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 
 	implementation group: 'com.amazonaws', name: 'aws-java-sdk-ec2', version: '1.12.757'
+	implementation group: 'com.amazonaws', name: 'aws-java-sdk-s3'
+	implementation group: 'com.amazonaws', name: 'aws-java-sdk-dynamodb'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'

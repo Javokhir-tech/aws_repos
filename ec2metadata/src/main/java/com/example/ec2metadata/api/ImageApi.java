@@ -32,8 +32,8 @@ public class ImageApi {
 
     @PostMapping("/upload")
     public ResponseEntity<String> uploadImage(@RequestParam("file") MultipartFile file) throws IOException {
-        imageService.uploadImage(file);
-        return ResponseEntity.ok("Image uploaded successfully");
+        var downloadUrl = imageService.uploadImage(file);
+        return ResponseEntity.ok("Image uploaded successfully " + downloadUrl);
     }
 
     @DeleteMapping("/{name}")

@@ -1,41 +1,37 @@
 package com.example.ec2metadata.service;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.ScanRequest;
-import com.amazonaws.services.dynamodbv2.model.ScanResult;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.amazonaws.services.s3.model.DeleteObjectRequest;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.*;
+import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.model.MessageAttributeValue;
+import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.example.ec2metadata.model.ImageMetadata;
 import com.example.ec2metadata.repository.ImageMetadataRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.io.IOException;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class ImageService {
 
     private static final Logger log = LoggerFactory.getLogger(ImageService.class);
-    @Autowired
-    private AmazonS3 amazonS3;
 
-    @Autowired
-    private ImageMetadataRepository imageMetadataRepository;
+    private final AmazonS3 amazonS3;
+    private final AmazonSQS amazonSQS;
+    private final ImageMetadataRepository imageMetadataRepository;
 
-    private final static String bucketName = "your-s3-bucket-name";
+    @Value("${aws.s3.bucket.name}")
+    private String bucketName;
+
+    @Value("${aws.sqs.url}")
+    private String sqsQueueUrl;
 
     public S3Object downloadImage(String name) {
         return amazonS3.getObject(new GetObjectRequest(bucketName, name));
@@ -47,27 +43,50 @@ public class ImageService {
     }
 
     public ImageMetadata getRandomImageMetadata() {
-        List<ImageMetadata> allMetadata = imageMetadataRepository.findAll();
+        var allMetadata = imageMetadataRepository.findAll();
         if (allMetadata.isEmpty()) {
             return null;
         }
-        Random random = new Random();
+        var random = new Random();
         return allMetadata.get(random.nextInt(allMetadata.size()));
     }
 
-    public void uploadImage(MultipartFile file) throws IOException {
-        String fileName = file.getOriginalFilename();
-        long size = file.getSize();
-        String fileExtension = fileName.substring(fileName.lastIndexOf(".") + 1);
-        String lastUpdateDate = new Date().toString();
+    public String uploadImage(MultipartFile file) throws IOException {
+        var fileName = file.getOriginalFilename();
+        var size = file.getSize();
+        assert fileName != null;
+        var fileExtension = fileName.substring(fileName.lastIndexOf(".") + 1);
+        var lastUpdateDate = new Date().toString();
 
-        ObjectMetadata metadata = new ObjectMetadata();
+        var metadata = new ObjectMetadata();
         metadata.setContentLength(size);
+        log.info("uploadImage:: name {}, size {}, bucketName {}", fileName, size, bucketName);
 
         amazonS3.putObject(new PutObjectRequest(bucketName, fileName, file.getInputStream(), metadata));
 
-        ImageMetadata imageMetadata = new ImageMetadata(fileName, lastUpdateDate, size, fileExtension);
+        var imageMetadata = new ImageMetadata(fileName, lastUpdateDate, size, fileExtension);
         imageMetadataRepository.save(imageMetadata);
+
+        var downloadUrl = String.format("%s/%s", bucketName, fileName);
+        // Publish message to SQS
+        var messageAttributes = new HashMap<String, String>();
+        messageAttributes.put("FileName", fileName);
+        messageAttributes.put("FileSize", String.valueOf(file.getSize()));
+        messageAttributes.put("FileExtension", getFileExtension(fileName));
+        messageAttributes.put("DownloadUrl", downloadUrl);
+
+        var sendMsgRequest = new SendMessageRequest()
+                .withQueueUrl(sqsQueueUrl)
+                .withMessageBody("Image uploaded: " + fileName)
+                .withMessageAttributes(messageAttributes.entrySet().stream()
+                        .collect(Collectors.toMap(Map.Entry::getKey, entry -> new MessageAttributeValue().withDataType("String").withStringValue(entry.getValue()))));
+        amazonSQS.sendMessage(sendMsgRequest);
+
+        return downloadUrl;
+    }
+
+    private String getFileExtension(String fileName) {
+        return fileName.substring(fileName.lastIndexOf('.') + 1);
     }
 
     public void deleteImage(String name) {

@@ -31,10 +31,7 @@ public class ImageService {
     private static final Logger log = LoggerFactory.getLogger(ImageService.class);
     @Autowired
     private AmazonS3 amazonS3;
-    @Autowired
-    private AmazonDynamoDB amazonDynamoDB;
-    @Autowired
-    private DynamoDBMapper dynamoDBMapper;
+
     @Autowired
     private ImageMetadataRepository imageMetadataRepository;
 
@@ -50,20 +47,12 @@ public class ImageService {
     }
 
     public ImageMetadata getRandomImageMetadata() {
-        ScanRequest scanRequest = new ScanRequest()
-                .withTableName("ImageMetadata");
-
-        ScanResult result = amazonDynamoDB.scan(scanRequest);
-        List<Map<String, AttributeValue>> items = result.getItems();
-
-        if (items.isEmpty()) {
+        List<ImageMetadata> allMetadata = imageMetadataRepository.findAll();
+        if (allMetadata.isEmpty()) {
             return null;
         }
-
         Random random = new Random();
-        Map<String, AttributeValue> randomItem = items.get(random.nextInt(items.size()));
-
-        return dynamoDBMapper.marshallIntoObject(ImageMetadata.class, randomItem);
+        return allMetadata.get(random.nextInt(allMetadata.size()));
     }
 
     public void uploadImage(MultipartFile file) throws IOException {

@@ -16,7 +16,6 @@ public class ImageMetadataApi {
     @Autowired
     private ImageService imageService;
 
-
     @GetMapping("/{name}")
     public ResponseEntity<ImageMetadata> getImageMetadata(@PathVariable String name) {
         ImageMetadata metadata = imageService.getImageMetadata(name);
@@ -28,5 +27,4 @@ public class ImageMetadataApi {
         ImageMetadata metadata = imageService.getRandomImageMetadata();
         return ResponseEntity.ok(metadata);
     }
-
 }

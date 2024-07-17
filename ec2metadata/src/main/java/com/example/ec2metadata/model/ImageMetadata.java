@@ -1,7 +1,7 @@
 package com.example.ec2metadata.model;
 
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBHashKey;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTable;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,10 +9,10 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@DynamoDBTable(tableName = "ImageMetadata")
+@Entity
 public class ImageMetadata {
 
-    @DynamoDBHashKey
+    @Id
     private String name;
     private String lastUpdateDate;
     private long size;

@@ -1,10 +1,10 @@
 package com.example.ec2metadata.repository;
 
 import com.example.ec2metadata.model.ImageMetadata;
-import org.socialsignin.spring.data.dynamodb.repository.EnableScan;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-@EnableScan
-public interface ImageMetadataRepository extends CrudRepository<ImageMetadata, String> {
+@Repository
+public interface ImageMetadataRepository extends JpaRepository<ImageMetadata, String> {
 }
 

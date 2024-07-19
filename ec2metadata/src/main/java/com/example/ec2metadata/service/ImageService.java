@@ -68,10 +68,14 @@ public class ImageService {
         imageMetadataRepository.save(imageMetadata);
 
         var downloadUrl = String.format("%s/%s", bucketName, fileName);
-        // Publish message to SQS
+        publishMessage(fileName, size, downloadUrl);
+        return downloadUrl;
+    }
+
+    private void publishMessage(String fileName, long size, String downloadUrl) {
         var messageAttributes = new HashMap<String, String>();
         messageAttributes.put("FileName", fileName);
-        messageAttributes.put("FileSize", String.valueOf(file.getSize()));
+        messageAttributes.put("FileSize", String.valueOf(size));
         messageAttributes.put("FileExtension", getFileExtension(fileName));
         messageAttributes.put("DownloadUrl", downloadUrl);
 
@@ -80,9 +84,8 @@ public class ImageService {
                 .withMessageBody("Image uploaded: " + fileName)
                 .withMessageAttributes(messageAttributes.entrySet().stream()
                         .collect(Collectors.toMap(Map.Entry::getKey, entry -> new MessageAttributeValue().withDataType("String").withStringValue(entry.getValue()))));
-        amazonSQS.sendMessage(sendMsgRequest);
-
-        return downloadUrl;
+        var result = amazonSQS.sendMessage(sendMsgRequest);
+        log.info("publishMessage::{}", result);
     }
 
     private String getFileExtension(String fileName) {

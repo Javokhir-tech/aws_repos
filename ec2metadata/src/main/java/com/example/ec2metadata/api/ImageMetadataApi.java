@@ -2,6 +2,7 @@ package com.example.ec2metadata.api;
 
 import com.example.ec2metadata.model.ImageMetadata;
 import com.example.ec2metadata.service.ImageService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,10 +12,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/image-metadata")
+@RequiredArgsConstructor
 public class ImageMetadataApi {
 
-    @Autowired
-    private ImageService imageService;
+    private final ImageService imageService;
 
     @GetMapping("/{name}")
     public ResponseEntity<ImageMetadata> getImageMetadata(@PathVariable String name) {

@@ -2,7 +2,7 @@ package com.example.ec2metadata.api;
 
 import com.amazonaws.services.s3.model.S3Object;
 import com.example.ec2metadata.service.ImageService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -14,10 +14,10 @@ import java.io.InputStream;
 
 @RestController
 @RequestMapping("/images")
+@RequiredArgsConstructor
 public class ImageApi {
 
-    @Autowired
-    private ImageService imageService;
+    private final ImageService imageService;
 
     @GetMapping("/{name}")
     public ResponseEntity<byte[]> downloadImage(@PathVariable String name) throws IOException {

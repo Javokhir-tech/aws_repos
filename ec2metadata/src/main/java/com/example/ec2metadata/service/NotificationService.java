@@ -17,7 +17,7 @@ public class NotificationService {
     private final AmazonSNS snsClient;
 
     @Value("${aws.sns.topic.arn}")
-    private final String topicArn;
+    private String topicArn;
 
     public PublishResult subscribe(String email) {
         log.info("subscribe:: {}", email);

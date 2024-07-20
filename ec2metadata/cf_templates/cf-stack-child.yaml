@@ -62,18 +62,18 @@ Resources:
             # Navigate to the application directory
             cd /home/ec2-user/app
             
-            AWS_S3_BUCKET_NAME=$(aws cloudformation list-exports --query "Exports[?Name=='${ProjectName}-S3BucketName'].Value" --output text)
-            AWS_SNS_TOPIC_ARN=$(aws cloudformation list-exports --query "Exports[?Name=='${ProjectName}-SNSTopicArn'].Value" --output text)
-            AWS_SQS_URL=$(aws cloudformation list-exports --query "Exports[?Name=='${ProjectName}-SQSQueueUrl'].Value" --output text)
-            SPRING_DATASOURCE_URL="jdbc:mysql://$(aws cloudformation list-exports --query "Exports[?Name=='${ProjectName}-RDSInstanceEndpoint'].Value" --output text):3306/$(aws cloudformation list-exports --query "Exports[?Name=='${ProjectName}-DBName'].Value" --output text)"
-            SPRING_DATASOURCE_USERNAME=$(aws cloudformation list-exports --query "Exports[?Name=='${ProjectName}-RDSInstanceUsername'].Value" --output text)
-            SPRING_DATASOURCE_PASSWORD=$(aws cloudformation list-exports --query "Exports[?Name=='${ProjectName}-RDSInstancePassword'].Value" --output text)
-            echo "export AWS_S3_BUCKET_NAME=$AWS_S3_BUCKET_NAME" >> /etc/profile
-            echo "export AWS_SNS_TOPIC_ARN=$AWS_SNS_TOPIC_ARN" >> /etc/profile
-            echo "export AWS_SQS_URL=$AWS_SQS_URL" >> /etc/profile
-            echo "export SPRING_DATASOURCE_URL=$SPRING_DATASOURCE_URL" >> /etc/profile
-            echo "export SPRING_DATASOURCE_USERNAME=$SPRING_DATASOURCE_USERNAME" >> /etc/profile
-            echo "export SPRING_DATASOURCE_PASSWORD=$SPRING_DATASOURCE_PASSWORD" >> /etc/profile
+            AWS_S3_BUCKET_NAME=$(aws cloudformation list-exports --query "Exports[?Name=='parent-stack-S3BucketName'].Value" --output text)
+            AWS_SNS_TOPIC_ARN=$(aws cloudformation list-exports --query "Exports[?Name=='parent-stack-SNSTopicArn'].Value" --output text)
+            AWS_SQS_URL=$(aws cloudformation list-exports --query "Exports[?Name=='parent-stack-SQSQueueUrl'].Value" --output text)
+            SPRING_DATASOURCE_URL="jdbc:mysql://$(aws cloudformation list-exports --query "Exports[?Name=='parent-stack-RDSInstanceEndpoint'].Value" --output text):3306/$(aws cloudformation list-exports --query "Exports[?Name=='parent-stack-DBName'].Value" --output text)"
+            SPRING_DATASOURCE_USERNAME=$(aws cloudformation list-exports --query "Exports[?Name=='parent-stack-RDSInstanceUsername'].Value" --output text)
+            SPRING_DATASOURCE_PASSWORD=$(aws cloudformation list-exports --query "Exports[?Name=='parent-stack-RDSInstancePassword'].Value" --output text)
+            echo "export AWS_S3_BUCKET_NAME=$AWS_S3_BUCKET_NAME" | sudo tee -a /etc/profile
+            echo "export AWS_SNS_TOPIC_ARN=$AWS_SNS_TOPIC_ARN" | sudo tee -a /etc/profile
+            echo "export AWS_SQS_URL=$AWS_SQS_URL" | sudo tee -a /etc/profile
+            echo "export SPRING_DATASOURCE_URL=$SPRING_DATASOURCE_URL" | sudo tee -a /etc/profile
+            echo "export SPRING_DATASOURCE_USERNAME=$SPRING_DATASOURCE_USERNAME" | sudo tee -a /etc/profile
+            echo "export SPRING_DATASOURCE_PASSWORD=$SPRING_DATASOURCE_PASSWORD" | sudo tee -a /etc/profile
             source /etc/profile
             
             # Download your Spring Boot application JAR from S3

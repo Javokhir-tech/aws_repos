@@ -254,3 +254,9 @@ Outputs:
     Export:
       Name:
         'Fn::Sub': '${AWS::StackName}-SNSTopicArn'
+  DBName:
+    Description: Db name
+    Value: !Ref DBName
+    Export:
+      Name:
+        'Fn::Sub': '${AWS::StackName}-DBName'
